@@ -9,6 +9,8 @@ dependencies = [
     "fastapi>=0.110.1",
     "pydantic>=2.7.0",
     "uvicorn[standard]>=0.29.0",
+    "tortoise-orm>=0.20.0",
+    "aerich>=0.7.2",
 ]
 requires-python = "==3.12.*"
 readme = "README.md"
@@ -108,3 +110,8 @@ docstring-code-line-length = "dynamic"
 # 开发环境
 dev.env_file.override = ".env"
 dev.cmd = "uvicorn flyflower.main:app --host 0.0.0.0 --port 8000 --reload"
+
+[tool.aerich]
+tortoise_orm = "flyflower.settings.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."
