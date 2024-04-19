@@ -7,7 +7,7 @@ class TrieNode:
     def __init__(
         self,
         value: str = "",
-        children: Dict[str, "TrieNode"] | None = {},
+        children: Dict[str, "TrieNode"] | None = None,
         end: bool = False,
     ):
         self.children: Dict[str, TrieNode] | None = children
@@ -24,9 +24,6 @@ class ZipTrie:
     """压缩字典树"""
 
     def __init__(self):
-        """
-        Initialize your data structure here.
-        """
         self.root = TrieNode()
 
     def _find(self, paragraph: str) -> Tuple[TrieNode, int]:
@@ -49,9 +46,11 @@ class ZipTrie:
                 prefix = ""
         return node, match_count
 
-    def _find_from_children(
-        self, paragraph: str, node: TrieNode
-    ) -> Tuple[TrieNode, int]:
+    def _pop_from_children(
+        self,
+        paragraph: str,
+        node: TrieNode
+    ) -> Tuple[TrieNode | None, int]:
         """查询当前节点的所有子节点的公共前缀.
 
         Args:
@@ -59,10 +58,10 @@ class ZipTrie:
             node (TrieNode): 节点.
 
         Returns:
-            Tuple[TrieNode, int]: 节点和匹配长度.
+            Tuple[TrieNode | None, int]: 与paragraph有相同前缀的节点, 最后一次相同字符的索引.
         """
         if node.children is None:
-            return node, -1
+            return None, -1
         for key in node.children:
             i = 0
             while i < len(paragraph) and i < len(key):
@@ -71,8 +70,8 @@ class ZipTrie:
                 i += 1
             i -= 1
             if i >= 0:
-                return node.children[key], i
-        return node, -1
+                return node.children.pop(key), i
+        return None, -1
 
     def insert(self, paragraph: str) -> None:
         """
@@ -85,26 +84,33 @@ class ZipTrie:
             return
         # 将剩余不匹配的字符添加到子节点中
         suffix = paragraph[match_count:]
-        node, prefix_index = self._find_from_children(suffix, node)
+        children, prefix_index = self._pop_from_children(suffix, node)
         if prefix_index == -1:
             # 新建节点
             node.add(TrieNode(value=suffix, end=True))
-        elif len(suffix) > len(node.value):
-            # suffix: ABCC
-            # node.value: ABC
-            node.add(TrieNode(value=suffix[prefix_index + 1 :], end=True))
-        elif len(suffix) < len(node.value):
-            # suffix: ABC
-            # node.value: ABCD
-            node.add(
-                TrieNode(
-                    value=node.value[prefix_index + 1 :],
-                    children=node.children,
-                    end=node.end,
-                )
-            )
-            node.value = suffix
-            node.end = True
+        else:
+            # 记录当前孩子节点数据
+            grand_children= children.children
+            children_value = children.value
+            children_end = children.end
+            # 重置孩子节点数据
+            children.children = None
+            children.value = suffix[:prefix_index + 1]
+            if prefix_index + 1 < len(children_value):
+                children.add(TrieNode(
+                        value=children_value[prefix_index + 1 :],
+                        children=grand_children,
+                        end=children_end,
+                ))
+            elif prefix_index == len(children_value) - 1:
+                children.end = children_end
+                children.children = grand_children
+            if prefix_index + 1 < len(suffix):
+                children.add(TrieNode(value=suffix[prefix_index + 1 :], end=True))
+            elif prefix_index == len(suffix) - 1:
+                children.end = True
+            # 添加到父节点
+            node.add(children)
         return
 
     def exist(self, paragraph: str) -> bool:
