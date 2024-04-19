@@ -7,7 +7,7 @@ class TrieNode:
     def __init__(
         self,
         value: str = "",
-        children: Dict[str, "TrieNode"] | None = {},
+        children: Dict[str, "TrieNode"] | None = None,
         end: bool = False,
     ):
         self.children: Dict[str, TrieNode] | None = children
@@ -24,9 +24,6 @@ class ZipTrie:
     """压缩字典树"""
 
     def __init__(self):
-        """
-        Initialize your data structure here.
-        """
         self.root = TrieNode()
 
     def _find(self, paragraph: str) -> Tuple[TrieNode, int]:
@@ -50,7 +47,9 @@ class ZipTrie:
         return node, match_count
 
     def _find_from_children(
-        self, paragraph: str, node: TrieNode
+        self,
+        paragraph: str,
+        node: TrieNode
     ) -> Tuple[TrieNode, int]:
         """查询当前节点的所有子节点的公共前缀.
 
