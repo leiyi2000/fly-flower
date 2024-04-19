@@ -47,9 +47,7 @@ class ZipTrie:
         return node, match_count
 
     def _pop_from_children(
-        self,
-        paragraph: str,
-        node: TrieNode
+        self, paragraph: str, node: TrieNode
     ) -> Tuple[TrieNode | None, int]:
         """查询当前节点的所有子节点的公共前缀.
 
@@ -90,18 +88,20 @@ class ZipTrie:
             node.add(TrieNode(value=suffix, end=True))
         else:
             # 记录当前孩子节点数据
-            grand_children= children.children
+            grand_children = children.children
             children_value = children.value
             children_end = children.end
             # 重置孩子节点数据
             children.children = None
-            children.value = suffix[:prefix_index + 1]
+            children.value = suffix[: prefix_index + 1]
             if prefix_index + 1 < len(children_value):
-                children.add(TrieNode(
+                children.add(
+                    TrieNode(
                         value=children_value[prefix_index + 1 :],
                         children=grand_children,
                         end=children_end,
-                ))
+                    )
+                )
             elif prefix_index == len(children_value) - 1:
                 children.end = children_end
                 children.children = grand_children
