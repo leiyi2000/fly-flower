@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  flyflower-apiserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flyflower-apiserver:${IMAGE_TAG:-latest}
+    volumes:
+      - sqlite3:/app/data
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-sqlite://data/flyflower.sqlite3}
+    ports:
+      - "3004:8000"
+    restart: always
+
+volumes:
+  sqlite3:
