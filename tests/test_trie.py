@@ -40,7 +40,7 @@ def test_remove():
         trie.add(paragraph)
         batch -= 1
     # 随机选择删除
-    paragraph_remove = random.choices(paragraphs, k = int(batch * 0.25))
+    paragraph_remove = random.choices(paragraphs, k=int(batch * 0.25))
     for paragraph in paragraph_remove:
         trie.remove(paragraph)
         ok = not trie.exist(paragraph)
