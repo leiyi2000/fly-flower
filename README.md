@@ -20,10 +20,8 @@ FLY-FLOWER 是一个基于 FastAPI 和 Tortoise-ORM 开发的后端接口服务�
 
 **克隆仓库并启动服务**
 
-    ```bash
-    git clone https://github.com/leiyi2000/fly-flower.git && cd fly-flower
-    docker compose up -d
-    ```
+    git clone https://github.com/leiyi2000/fly-flower.git && cd fly-flower && docker compose up -d
 
 **访问接口文档**
+
     [FLY-FLOWER API 文档](http://127.0.0.1:3004/docs)
