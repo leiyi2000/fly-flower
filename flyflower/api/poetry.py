@@ -103,10 +103,7 @@ async def search(
     return poetries
 
 
-@router.post(
-    "/verify",
-    description="古诗校验"
-)
+@router.post("/verify", description="古诗校验")
 async def verify(
     paragraph: str = Body(..., description="诗句"),
     min_length: int = Body(4, description="最少字数"),
