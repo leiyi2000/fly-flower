@@ -2,6 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Body, Path, Query
 
+from flyflower.trie import ztrie
 from flyflower.models import Poetry
 
 
@@ -22,6 +23,8 @@ async def create(
         rhythmic=rhythmic,
         paragraphs=paragraphs,
     )
+    for paragraph in paragraphs:
+        ztrie.add(paragraph)
     return poetry
 
 
@@ -42,10 +45,18 @@ async def reads(
     description="删除古诗词",
 )
 async def delete(id: int = Path(..., description="诗词ID")):
-    return await Poetry.filter(id=id).delete()
+    poetry = await Poetry.get_or_none(id=id)
+    if poetry is not None:
+        for paragraph in poetry.paragraphs:
+            ztrie.remove(paragraph)
+        await poetry.delete()
+        rows = 1
+    else:
+        rows = 0
+    return rows
 
 
-@router.patch(
+@router.put(
     "/{id}",
     description="修改古诗词",
 )
@@ -55,11 +66,17 @@ async def update(
     rhythmic: str = Body(..., max_length=128, description="诗名"),
     paragraphs: List[str] = Body(..., description="诗句"),
 ):
+    poetry = await Poetry.get_or_none(id=id)
+    if poetry is not None:
+        for paragraph in poetry.paragraphs:
+            ztrie.remove(paragraph)
     rows = await Poetry.filter(id=id).update(
         author=author,
         rhythmic=rhythmic,
         paragraphs=paragraphs,
     )
+    for paragraph in paragraphs:
+        ztrie.add(paragraph)
     return rows
 
 

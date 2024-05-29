@@ -1,4 +1,7 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
+
+
+SYMBOL = [",", "，", ".", "。"]
 
 
 class ZipTrie:
@@ -18,7 +21,8 @@ class ZipTrie:
         Args:
             paragraph (str): 节点.
         """
-        node, match_length = self.find(paragraph)
+        paragraph = self._filter(paragraph)
+        node, match_length = self._find(paragraph)
         if match_length == len(paragraph):
             node.end = True
             return
@@ -36,7 +40,7 @@ class ZipTrie:
                     break
             if prefix_length > 0:
                 # 公共前缀长度大于0，则分裂
-                prefix_node = node.fission(key, prefix_length)
+                prefix_node = node._fission(key, prefix_length)
                 # 处理剩余添加段落
                 if prefix_length < len(paragraph):
                     prefix_node.children[paragraph[prefix_length:]] = ZipTrie(end=True)
@@ -54,10 +58,40 @@ class ZipTrie:
         Args:
             node (paragraph): 节点.
         """
-        # TODO
-        pass
+        paragraph = self._filter(paragraph)
+        prefix = ""
+        node = self
+        # [(父节点, 子节点, 前缀), ...]
+        node_stack: List[Tuple[ZipTrie, ZipTrie, str]] = []
+        match_length = 0
+        for char in paragraph:
+            prefix += char
+            if node.children and prefix in node.children:
+                node_stack.append((node, node.children[prefix], prefix))
+                node = node.children[prefix]
+                match_length += len(prefix)
+                prefix = ""
+        # 判断是否为最后一个节点
+        if match_length != len(paragraph) or not node.end:
+            return
+        while node_stack:
+            node_parent, node, prefix = node_stack.pop()
+            if node.children is None or len(node.children) == 0:
+                # 节点没有子节点，则删除当前节点
+                node_parent.children.pop(prefix)
+            elif len(node.children) == 1:
+                # 合并node_child到node_parent, 删除node
+                prefix_child, node_child = node.children.popitem()
+                # 父亲删除
+                node_parent.children.pop(prefix)
+                node_parent.children[prefix + prefix_child] = node_child
+                break
+            elif len(node.children) > 1:
+                # 节点存在多个子节点，则删除当前节点
+                node.end = False
+                break
 
-    def fission(self, paragraph: str, length: int) -> "ZipTrie":
+    def _fission(self, paragraph: str, length: int) -> "ZipTrie":
         """节点裂解.
 
         Args:
@@ -79,7 +113,7 @@ class ZipTrie:
             )
         return prefix_node
 
-    def find(self, paragraph: str) -> Tuple["ZipTrie", int]:
+    def _find(self, paragraph: str) -> Tuple["ZipTrie", int]:
         """查询段落是否存在.
 
         Args:
@@ -108,5 +142,23 @@ class ZipTrie:
         Returns:
             bool: True 存在 or False 不存在.
         """
-        node, match_length = self.find(paragraph)
+        paragraph = self._filter(paragraph)
+        node, match_length = self._find(paragraph)
         return node.end and match_length == len(paragraph)
+
+    def _filter(self, paragraph: str) -> str:
+        """过滤段落.
+
+        Args:
+            paragraph (str): 段落.
+        Returns:
+            str: 过滤后的段落.
+        """
+        new_paragraph = ""
+        for char in paragraph:
+            if char not in SYMBOL:
+                new_paragraph += char
+        return new_paragraph
+
+
+ztrie = ZipTrie()
