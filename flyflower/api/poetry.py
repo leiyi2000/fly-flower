@@ -1,5 +1,7 @@
 from typing import List
 
+import re
+
 from fastapi import APIRouter, Body, Path, Query
 
 from flyflower.trie import ztrie
@@ -99,3 +101,21 @@ async def search(
     # TODO 全文模糊搜索?
     poetries = await Poetry.filter(rhythmic__contains=key).all().limit(10)
     return poetries
+
+
+@router.post(
+    "/verify",
+    description="古诗校验"
+)
+async def verify(
+    paragraph: str = Body(..., description="诗句"),
+    min_length: int = Body(4, description="最少字数"),
+    match_pattern: str | None = Body(default=None, description="正则表达式校验"),
+):
+    if len(paragraph) < min_length:
+        return False
+    if not ztrie.exist(paragraph):
+        return False
+    if match_pattern is not None and not re.match(paragraph, match_pattern):
+        return False
+    return True
